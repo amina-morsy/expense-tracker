@@ -17,7 +17,7 @@ def init_db():
                           )
                       """)  #exectue sends SQL to the database
                       
-   connection.commit()  # saves the code on githun
+   connection.commit()  # saves the code on github
    connection.close() #closes the file properly
    
    
@@ -33,11 +33,29 @@ def add_expense(amount, category, date, details):
     connection.close()
     
                        
-    
+def list_expenses():
+    connection=sqlite3.connect("expenses.db")
+    cursor=connection.execute("""
+                              SELECT id, amount, category, date, details FROM expenses ORDER BY date DESC
+                              
+                              """)  #select says give me those columns from expenses table and sort them by newest first DESC= descending, the results come back as cursor(pointer)
+    rows= cursor.fetchall()  #fetchall collects every result into a list, each item in the list is one expense, stored as a tuple
+    connection.close() # no commit this time because commit saves changes and reading doesn't cause changes
+    if not rows:
+        print("No expenses yet.")
+        return 
+    for row in rows:
+        ids, amount, category, date, details=row
+        euros=amount/100
+        print(f'{ids}, {date}, {category}, {euros:.2f}, {details}')
+        
+        
    
                       
    
 init_db()
+
+list_expenses()
 
 print("Database ready.")
               
