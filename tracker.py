@@ -50,9 +50,39 @@ def list_expenses():
         print(f'{ids}, {date}, {category}, {euros:.2f}, {details}')
         
         
-   
-                      
-   
+def summary():
+    connection=sqlite3.connect("expenses.db")
+    cursor=connection.execute(
+        """SELECT category, SUM(amount) FROM expenses GROUP BY category ORDER BY SUM(amount) DESC
+        """  #group by category puts all expenses with the same category into one group
+        # sum(amount) adds up the amounts within each group
+        # order by sum(amount) dessc puts biggest spending first
+        )
+    by_category=cursor.fetchall()
+    cursor_month= connection.execute("""SELECT strftime('%Y-%m', date) AS month, SUM(amount) FROM expenses GROUP BY month ORDER BY month DESC""")
+    by_month=cursor_month.fetchall()
+    connection.close()
+    if not by_category:
+        print("No expenses yet")
+        return
+    
+    print("By category:")
+    total=0
+    for row in by_category:
+        category, cents=row
+        total+=cents
+        print(f" {category}  {cents/100:.2f}")
+    print("By month: ")
+    for row in by_month:
+        months, cents=row
+        print(f" {months}  {cents/100:.2f}")
+
+    print(f"Total: {total/100:.2f}")
+    
+          
+        
+    
+    
 def main():
     init_db() #calling this first guarantees the table exists before any command runs
     parser=argparse.ArgumentParser(description="Simple expense tracker") #parse readas what the user typed, the description shows up in the automatic help message.
@@ -63,12 +93,15 @@ def main():
     add_parser.add_argument("date")
     add_parser.add_argument("details")
     subparsers.add_parser("list", help="Show all expenses")
+    subparsers.add_parser("summary", help="Show spending totals")
     args=parser.parse_args() 
     if args.command=="add": 
         add_expense(args.amount, args.category, args.date, args.details)
         print("Expense added")
     elif args.command=="list":
         list_expenses()
+    elif args.command=="summary":
+        summary()
     else:
         parser.print_help()  #so when user types just python tracker.py with no command, they get instructions instead of nothing
         
