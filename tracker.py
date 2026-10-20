@@ -1,6 +1,5 @@
 import sqlite3
-
-print("Expense tracker")
+import argparse
 
 
 
@@ -33,6 +32,7 @@ def add_expense(amount, category, date, details):
     connection.close()
     
                        
+
 def list_expenses():
     connection=sqlite3.connect("expenses.db")
     cursor=connection.execute("""
@@ -53,11 +53,29 @@ def list_expenses():
    
                       
    
-init_db()
-
-list_expenses()
-
-print("Database ready.")
-              
+def main():
+    init_db() #calling this first guarantees the table exists before any command runs
+    parser=argparse.ArgumentParser(description="Simple expense tracker") #parse readas what the user typed, the description shows up in the automatic help message.
+    subparsers= parser.add_subparsers(dest="command")  #add and list are subcommands, dest="command" means store which subcommand the user typed in a variable called command so you can check it later.
+    add_parser=subparsers.add_parser("add", help="Add a new expense")
+    add_parser.add_argument('amount', type=float)
+    add_parser.add_argument("category")
+    add_parser.add_argument("date")
+    add_parser.add_argument("details")
+    subparsers.add_parser("list", help="Show all expenses")
+    args=parser.parse_args() 
+    if args.command=="add": 
+        add_expense(args.amount, args.category, args.date, args.details)
+        print("Expense added")
+    elif args.command=="list":
+        list_expenses()
+    else:
+        parser.print_help()  #so when user types just python tracker.py with no command, they get instructions instead of nothing
+        
+        
+if __name__=="__main__":
+    main()
+    
+        
     
     
