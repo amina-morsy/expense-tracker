@@ -79,6 +79,21 @@ def summary():
 
     print(f"Total: {total/100:.2f}")
     
+def delete_expense(expense_id):
+    connection=sqlite3.connect("expenses.db")
+    cursor=connection.execute("""DELETE FROM expenses WHERE id=?""", (expense_id,) ) #the WHERE id =? limits the delete to one row, without it everything will be deleted. the comma after the expense_id is to make it a one item tuple because the values must be a tuple
+    deleted=cursor.rowcount #rowcount tells you how many rows the command affected
+    connection.commit()
+    connection.close()
+    if deleted==0:
+        print(f"No expense found with id {expense_id}")
+    else:
+        print(f"Expense {expense_id} deleted.")
+        
+    
+    
+    
+    
           
         
     
@@ -94,7 +109,10 @@ def main():
     add_parser.add_argument("details")
     subparsers.add_parser("list", help="Show all expenses")
     subparsers.add_parser("summary", help="Show spending totals")
+    delete_parser=subparsers.add_parser("delete", help="Delete an expense by ID")
+    delete_parser.add_argument("id", type=int)
     args=parser.parse_args() 
+
     if args.command=="add": 
         add_expense(args.amount, args.category, args.date, args.details)
         print("Expense added")
@@ -102,9 +120,12 @@ def main():
         list_expenses()
     elif args.command=="summary":
         summary()
+    elif args.command =="delete":
+        delete_expense(args.id)
     else:
         parser.print_help()  #so when user types just python tracker.py with no command, they get instructions instead of nothing
-        
+   
+    
         
 if __name__=="__main__":
     main()
