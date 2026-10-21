@@ -114,13 +114,14 @@ def delete_expense(expense_id):
         
     
 def edit_expense(expense_id, amount, category, date, details):
-     if not amount and not category and not date and not details:
+     if amount is None and category is None and date is None and details is None:         
          print("Nothing to change.")
          return
      if amount is not None and amount<=0:
          print("Amount must be greater than 0.")
+         return
      if date is not None and not is_valid_date(date):
-         print("Invalid date. Use the format YYY-MM-DD, e.g. 2026-10-21")
+         print("Invalid date. Use the format YYYY-MM-DD, e.g. 2026-10-21")
          return
      if category is not None:
          category=category.strip().lower()
@@ -135,7 +136,7 @@ def edit_expense(expense_id, amount, category, date, details):
      connection=sqlite3.connect("expenses.db")
      row=connection.execute(""" SELECT amount, category, date, details FROM expenses WHERE id=?""", (expense_id,)).fetchone()
      if row is None:
-         print(f"No expense found with id{expense_id}.")
+         print(f"No expense found with id {expense_id}.")
          connection.close()
          return
      old_amount, old_category, old_date, old_details=row 
