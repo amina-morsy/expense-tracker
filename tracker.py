@@ -113,10 +113,49 @@ def delete_expense(expense_id):
         print(f"Expense {expense_id} deleted.")
         
     
-    
-    
-    
-          
+def edit_expense(expense_id, amount, category, date, details):
+     if not amount and not category and not date and not details:
+         print("Nothing to change.")
+         return
+     if amount is not None and amount<=0:
+         print("Amount must be greater than 0.")
+     if date is not None and not is_valid_date(date):
+         print("Invalid date. Use the format YYY-MM-DD, e.g. 2026-10-21")
+         return
+     if category is not None:
+         category=category.strip().lower()
+         if not category:
+             print("Category can't be empty.")
+             return
+     if details is not None:
+         details=details.strip()
+         if not details:
+             print("Details can't be empty.")
+             return
+     connection=sqlite3.connect("expenses.db")
+     row=connection.execute(""" SELECT amount, category, date, details FROM expenses WHERE id=?""", (expense_id,)).fetchone()
+     if row is None:
+         print(f"No expense found with id{expense_id}.")
+         connection.close()
+         return
+     old_amount, old_category, old_date, old_details=row 
+     if not category:
+         category=old_category
+     if not date:
+         date=old_date
+     if not details:
+         details=old_details
+     if not amount:
+         amount_cents=old_amount
+     else:
+         amount_cents=round(amount*100)
+     connection.execute("""UPDATE expenses SET amount=?, category=?, date=?, details=? WHERE id=?""", (amount_cents, category, date, details, expense_id))
+     connection.commit()
+     connection.close()
+     print(f"Expense {expense_id} updated.")
+     
+             
+             
         
     
     
@@ -133,6 +172,14 @@ def main():
     subparsers.add_parser("summary", help="Show spending totals")
     delete_parser=subparsers.add_parser("delete", help="Delete an expense by ID")
     delete_parser.add_argument("id", type=int)
+    edit_parsers=subparsers.add_parser("edit", help="Edit an expense by ID")
+    edit_parsers.add_argument("id", type=int)
+    edit_parsers.add_argument("--amount", type=float)
+    edit_parsers.add_argument("--category")
+    edit_parsers.add_argument("--date")
+    edit_parsers.add_argument("--details") #names starting with -- are optional arguments, user can include them or leave them out
+    
+
     args=parser.parse_args() 
 
     if args.command=="add": 
@@ -143,6 +190,9 @@ def main():
         summary()
     elif args.command =="delete":
         delete_expense(args.id)
+    elif args.command=="edit":
+        edit_expense(args.id, args.amount, args.category, args.date, args.details)
+        
     else:
         parser.print_help()  #so when user types just python tracker.py with no command, they get instructions instead of nothing
    
