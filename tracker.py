@@ -1,5 +1,7 @@
 import sqlite3
 import argparse
+from datetime import datetime
+
 
 
 
@@ -18,9 +20,28 @@ def init_db():
                       
    connection.commit()  # saves the code on github
    connection.close() #closes the file properly
-   
+
+def is_valid_date(date_text):
+    try:
+        datetime.strptime(date_text, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
+    
+    
    
 def add_expense(amount, category, date, details):
+    if amount<=0:
+        print("Amount must be greater than 0.")
+        return
+    if not is_valid_date(date):
+        print("Invalid date. Use the format YYY-MM-DD, e.g. 2026-10-21")
+        return
+    category=category.strip().lower()
+    details=details.strip()
+    if not category or not details:
+        print("Category and details can't be empty.")
+        return
     amount_cents=round(amount*100) #since we chose to store money as cents, round avoids tiny errors
     connection=sqlite3.connect("expenses.db")
     connection.execute("""
@@ -30,6 +51,7 @@ def add_expense(amount, category, date, details):
                        
     connection.commit()
     connection.close()
+    print("Expense added")
     
                        
 
@@ -115,7 +137,6 @@ def main():
 
     if args.command=="add": 
         add_expense(args.amount, args.category, args.date, args.details)
-        print("Expense added")
     elif args.command=="list":
         list_expenses()
     elif args.command=="summary":
